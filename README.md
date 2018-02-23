@@ -17,7 +17,7 @@ __________________________
 
 
 ## 2. Add a new user and give grader permission
-Add user ```grader``` with command: ```sudo adduser grader```
+Add user ```grader``` with command: ```sudo adduser grader``` password ```grader```
 
 - `touch /etc/sudoers.d/grader`
 - `vim /etc/sudoers.d/grader`, write `grader ALL=(ALL:ALL) ALL` under `root ALL=(ALL:ALL) ALL` , save and quit (ctr+x , y , enter)
