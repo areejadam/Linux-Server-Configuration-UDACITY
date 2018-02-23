@@ -178,4 +178,4 @@ ________________________________________________________________________________
 * Apache Docs
 * How To Install and Use PostgreSQL on Ubuntu 14.04
 * Stackoverflow and the Readme's of other FSND students on Github.
-* Special Thanks to SteveWooding for a very helpful README
+* Special Thanks to anumsh for a very helpful README
