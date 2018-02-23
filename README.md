@@ -10,24 +10,25 @@ SSH port: 2200
 URL: http://18.197.88.191
 
 # Configuration changes
+__________________________
 
 ### Step 1 : Launch your Virtual Machine with your Udacity account
+```sudo ssh -vvv -i ~/Downloads/areej-key.pem ubuntu@18.197.88.191```
 
 
-## 2. Add a new user
+## 2. Add a new user and give grader permission
 Add user ```grader``` with command: ```sudo adduser grader```
 
-## 3. Give grader sudo permission
-- As the root user, type `visudo`
+- `touch /etc/sudoers.d/grader`
+- `vim /etc/sudoers.d/grader`, write `grader ALL=(ALL:ALL) ALL` under `root ALL=(ALL:ALL) ALL` , save and quit (ctr+x , y , enter)
 
+## 3. Update all currently installed packages
+* Update the package `sudo apt-get update`
 
-## 4. Update all currently installed packages
-* Update the package indexes apt-get update
+*  upgrade the installed packages ` sudo apt-get upgrade`
 
-* To actually upgrade the installed packages apt-get upgrade
-
-## 5. Set-up SSH keys for user grader
-As root user do:
+## 4. Set-up SSH keys for user grader
+As root user do:`ssh-keygen`
 
 ```
 mkdir /home/grader/.ssh
@@ -37,6 +38,7 @@ cp /root/.ssh/authorized_keys /home/grader/.ssh/
 chown grader:grader /home/grader/.ssh/authorized_keys
 chmod 644 /home/grader/.ssh/authorized_keys
 ```
+## 5. reload SSH using `service ssh restart`
 
 ## 6. Change the SSH port from 22 to 2200
 by login as root 
@@ -49,19 +51,18 @@ by login as root
     `sudo service ssh restart`
     
 ## 7. Configure local Timezone to UTC
-- Start the configuration process <br>
-`dpkg-reconfigure tzdata`
+-Configure the time zone `sudo dpkg-reconfigure tzdata`
 
 # 8.Add SSH port 2200
-Reconfigure the port for the ssh server: ```sudo nano /etc/ssh/sshd_config```
+-  ```sudo nano /etc/ssh/sshd_config```
 
-and add: ```port 2200```
+- and add: ```port 2200```
 
-Then reload the configuration: ```sudo service ssh force-reload```
+- Then reload :```sudo service ssh force-reload```
 
 
 # 9.Configuration Uncomplicated Firewall (UFW)
-By default, block all incoming connections on all ports:
+allow incoming connections for SSH (port 2200), HTTP (port 80), and NTP (port 123)
 
 ```
 sudo ufw default deny incoming
@@ -72,14 +73,18 @@ sudo ufw allow www
 sudo ufw allow 123/udp
 sudo ufw enable
 ```
-# 10.Install Apache 
+
+# 10 . Installation :
+
 Install Apache:
 ```sudo apt-get install apache2```
 
-# 11.Install the libapache2-mod-wsgi package:
 ```sudo apt-get install libapache2-mod-wsgi```
 
-# 12. Install and configure the PostgreSQL database system
+Restart Apache 
+`sudo service apache2 restart`
+
+# 11. Install and configure the PostgreSQL database system
 ```
 sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib
@@ -94,7 +99,7 @@ postgres=# \q
 postgres:~$ exit
 ```
 
-# 13. Install Flask, SQLAlchemy, etc
+# 12. Install Flask, SQLAlchemy, etc
 Issue the following commands:
 ```
 sudo apt-get install python-psycopg2 python-flask
@@ -106,17 +111,19 @@ sudo pip install flask-seasurf
 Install Git version control software
 sudo apt-get install git
 ```
-# 14. Clone the repository that contains Project 4 Catalog app
+# 13. Clone the repository that contains project
 ```
 cd /var/www
 sudo mkdir catalog
 sudo chown -R grader:grader catalog
-cd project4
+cd catalog
 sudo git clone https://github.com/areejadam/Udacity-catalog-fullstack.git catalog
 ```
 
 # 15. Configure the Catalog app
-* Change app.py to __init__.py
+` cd /var/www/catalog/catalog `
+* Change application.py to __init__.py
+`mv application  __init__.py`
 
 update the create_engine line:
 	`python engine = create_engine('postgresql://catalog:password@localhost/catalog')`
@@ -133,6 +140,7 @@ update the create_engine line:
 # 17. Configure Apache to serve the web application using WSGI
 * Create the web application WSGI file.
 ```sudo nano /var/www/catalog/catalog.wsgi```
+
 # 18. Add the following lines to the file, and save the file.
 #!/usr/bin/python
 ```
@@ -145,17 +153,18 @@ application.secret_key = 'super_secret_key'
 ```
 # 19. Update the Apache configuration file to serve the web application with WSGI.
 ```sudo nano /etc/apache2/sites-enabled/000-default.conf```
+
 # 20 . Add the following line inside the <VirtualHost *:80> element, and save the file.
         ```
 	ServerName 18.197.88.191
 	ServerAdmin ubuntu@18.197.88.191
 	WSGIScriptAlias / /var/www/catalog/catalog.wsgi
-	<Directory /var/www/project4/catalog>
+	<Directory /var/www/catalog/catalog>
 		Order allow,deny
 		Allow from all
 	</Directory>
-	Alias /static /var/www//project4/project4/static
-	<Directory /var/www/project4/project4/static/>
+	Alias /static /var/www//catalog/catalog/static
+	<Directory /var/www/catalog/catalog/static/>
 		Order allow,deny
 		Allow from all
 	</Directory>
