@@ -1,32 +1,32 @@
 # Linux-Server-Configuration-UDACITY
 By Areej adam , in fulfillment of Udacity's Full-Stack Web Developer Nanodegree
 
-# server details
-This project is a baseline installation of a Linux server and prepare it to host my web applications. secured my server from a number of attack vectors, installed and configure a database server, and deployed one of my existing web applications onto it.
 
 # Server details
-IP address: 35.177.79.130
+IP address: 18.197.88.191
 
 SSH port: 2200
 
-URL: http://35.177.79.130
+URL: http://18.197.88.191
 
 # Configuration changes
 
-# Add user
+### Step 1 : Launch your Virtual Machine with your Udacity account
+
+
+## 2. Add a new user
 Add user ```grader``` with command: ```sudo adduser grader```
 
-# Add user grader to sudo group
-Assuming your Linux distro has a sudo group (like Ubuntu 16.04), simply add the user to this admin group:
+## 3. Give grader sudo permission
+- As the root user, type `visudo`
 
-```sudo usermod -a -G sudo grader```
 
-# Update all currently installed packages
+## 4. Update all currently installed packages
 * Update the package indexes apt-get update
 
 * To actually upgrade the installed packages apt-get upgrade
 
-# Set-up SSH keys for user grader
+## 5. Set-up SSH keys for user grader
 As root user do:
 
 ```
@@ -37,65 +37,49 @@ cp /root/.ssh/authorized_keys /home/grader/.ssh/
 chown grader:grader /home/grader/.ssh/authorized_keys
 chmod 644 /home/grader/.ssh/authorized_keys
 ```
-Can now login as the grader user using the command: ```ssh grader@35.177.79.130 -p 22 -i ~/.ssh/linuxrsa```
 
-# Disable root login
-Change the PasswordAuthentication line to no instead of yes in the file ```sudo nano /etc/ssh/sshd_config```:
+## 6. Change the SSH port from 22 to 2200
+by login as root 
+    * `nano /etc/ssh/sshd_config`
+    * change port from `22` to `2200`
+    * change `PermitRootLogin without-password` to `PermitRootLogin no` . it is disable root login.
+    * change `PasswordAuthentication` from no to yes.
+    * add `AllowUsers grader` .
+* restart the SSH service :
+    `sudo service ssh restart`
+    
+## 7. Configure local Timezone to UTC
+- Start the configuration process <br>
+`dpkg-reconfigure tzdata`
 
-* So it reads:
-```PasswordAuthentication no```
-Do ```sudo service ssh restart``` for the changes to take effect.
-
-# Change timezone to UTC
-Check the timezone with the date command. This will display the current timezone after the time. If it's not UTC change it like this:
-
-```sudo timedatectl set-timezone UTC```
-
-# Add SSH port 2200
+# 8.Add SSH port 2200
 Reconfigure the port for the ssh server: ```sudo nano /etc/ssh/sshd_config```
 
 and add: ```port 2200```
 
 Then reload the configuration: ```sudo service ssh force-reload```
 
-and connect via:
 
-```ssh grader@35.178.34.134 -p 2200 -i ~/.ssh/linuxrsa```
-
-# Configuration Uncomplicated Firewall (UFW)
+# 9.Configuration Uncomplicated Firewall (UFW)
 By default, block all incoming connections on all ports:
 
-```sudo ufw default deny incoming```
-
-* Allow outgoing connection on all ports:
-```sudo ufw default allow outgoing```
-
-* Allow incoming connection for SSH on port 2200:
-```sudo ufw allow 2200/tcp```
-
-* Allow incoming connections for HTTP on port 80:
-```sudo ufw allow www```
-
-* Allow incoming connection for NTP on port 123:
-```sudo ufw allow ntp```
-
-* To check the rules that have been added before enabling the firewall use:
-```sudo ufw show added```
-
-* To enable the firewall, use:
-```sudo ufw enable```
-
-* To check the status of the firewall, use:
-```sudo ufw status```
-
-# Install Apache to serve a Python mod_wsgi application
+```
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow 2200/tcp (Note: Changed SSH above to port 2200)
+sudo ufw allow www
+sudo ufw allow 123/udp
+sudo ufw enable
+```
+# 10.Install Apache 
 Install Apache:
 ```sudo apt-get install apache2```
 
-# Install the libapache2-mod-wsgi package:
+# 11.Install the libapache2-mod-wsgi package:
 ```sudo apt-get install libapache2-mod-wsgi```
 
-# Install and configure the PostgreSQL database system
+# 12. Install and configure the PostgreSQL database system
 ```
 sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib
@@ -105,12 +89,12 @@ postgres:~$ createuser catalog
 postgres:~$ createdb catalog
 postgres:~$ psql catalog
 postgres=# ALTER DATABASE catalog OWNER TO catalog;
-postgres=# ALTER USER catalog WITH PASSWORD 'catalog';
+postgres=# ALTER USER catalog WITH PASSWORD 'password';
 postgres=# \q
 postgres:~$ exit
 ```
 
-# Install Flask, SQLAlchemy, etc
+# 13. Install Flask, SQLAlchemy, etc
 Issue the following commands:
 ```
 sudo apt-get install python-psycopg2 python-flask
@@ -122,53 +106,51 @@ sudo pip install flask-seasurf
 Install Git version control software
 sudo apt-get install git
 ```
-# Clone the repository that contains Project 4 Catalog app
+# 14. Clone the repository that contains Project 4 Catalog app
 ```
 cd /var/www
-sudo mkdir project4
-sudo chown -R grader:grader project4
+sudo mkdir catalog
+sudo chown -R grader:grader catalog
 cd project4
-sudo git clone https://github.com/areejadam/Udacity-catalog-fullstack.git project4
+sudo git clone https://github.com/areejadam/Udacity-catalog-fullstack.git catalog
 ```
 
-# Configure the Catalog app
+# 15. Configure the Catalog app
 * Change app.py to __init__.py
-* Provide the full path (or location) to all the files, instead of just the filename
 
-# Configure Google OAuth
-* Add the public IP address of your server to the “Authorized javascript origins”
-* Add the public IP address to the client secrets JSON file
-# Configure the web application to connect to the PostgreSQL database instead of a SQLite database
-```
-sudo nano /var/www/project4/project4/app.py
--Change the DATABASE_URI setting in the file from 'sqlite:///catalogitems.db' to 'postgresql://catalog:catalog@localhost/catalog', and save 
-```
-# Configure the Database to connect to the PostgreSQL database instead of a SQLite database
-```
-sudo nano /var/www/project4/project4/dbsetup.py
--Change the DATABASE_URI setting in the file from 'sqlite:///catalogitems.db' to 'postgresql://catalog:catalog@localhost/catalog', and save
-```
-# Configure Apache to serve the web application using WSGI
+update the create_engine line:
+	`python engine = create_engine('postgresql://catalog:password@localhost/catalog')`
+* Update the create_engine line in __init__.py project.py and lotsofmenus.py too
+
+# 16. Configure Google OAuth
+* Google Authorization steps:
+  * Go to [console.developer](https://console.developers.google.com/)
+  * click on Credentails --> edit
+  * add you hostname (http://ec2-18-197-88-191.us-west-2.compute.amazonaws.com  ) and public IP address (http://18.197.88.191) to Authorised   JavaScript origins.
+  * add hostname (http://ec2-18-197-88-191-us-west-2.compute.amazonaws.com/oauth2callback) to Authorised redirect URIs.
+  * update the client_secret.json file too(adding hostname and public IP address).
+
+# 17. Configure Apache to serve the web application using WSGI
 * Create the web application WSGI file.
-```sudo nano /var/www/project4/app.wsgi```
-# Add the following lines to the file, and save the file.
+```sudo nano /var/www/catalog/catalog.wsgi```
+# 18. Add the following lines to the file, and save the file.
 #!/usr/bin/python
 ```
 import sys 
 import logging
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0,"/var/www/project4/")
-from project4 import app as application
+sys.path.insert(0,"/var/www/catalog/")
+from catalog import app as application
 application.secret_key = 'super_secret_key'
 ```
-# Update the Apache configuration file to serve the web application with WSGI.
+# 19. Update the Apache configuration file to serve the web application with WSGI.
 ```sudo nano /etc/apache2/sites-enabled/000-default.conf```
-# Add the following line inside the <VirtualHost *:80> element, and save the file.
+# 20 . Add the following line inside the <VirtualHost *:80> element, and save the file.
         ```
-	ServerName 35.177.79.130
-	ServerAdmin basmaashouu@gmail.com
-	WSGIScriptAlias / /var/www/project4/app.wsgi
-	<Directory /var/www/project4/project4>
+	ServerName 18.197.88.191
+	ServerAdmin ubuntu@18.197.88.191
+	WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+	<Directory /var/www/project4/catalog>
 		Order allow,deny
 		Allow from all
 	</Directory>
@@ -181,8 +163,15 @@ application.secret_key = 'super_secret_key'
 	LogLevel warn
 	CustomLog ${APACHE_LOG_DIR}/access.log combined```
  
-* Restart Apache.
-```sudo apache2ctl restart```
+###  21. Run the application:
+* Create the datbase schema:
+    `python database_setup.py`
+    `python lotsofmenus.py`
+* Restart Apache : `sudo service apache2 restart`
+* in /var/www/catalog/catalog directory : execute -  `python __init__.py`
+restart the apache2 server.
+
+___________________________________________________________________________________________________________
 # References
 * Ask Ubuntu
 * PosgreSQL Docs
